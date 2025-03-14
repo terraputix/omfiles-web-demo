@@ -23,6 +23,9 @@ class OmFileViewer {
   private currentTimestamp = 0;
   private maxTimestamp = 0;
   private dimensions: number[] = [];
+  private timeIndex = 2;
+  private latIndex = 0;
+  private lonIndex = 1;
 
   // DOM elements
   private loadButton: HTMLButtonElement;
@@ -206,8 +209,7 @@ class OmFileViewer {
     try {
       // Create ranges for each dimension
       const ranges: Range[] = this.dimensions.map((dim, i) => {
-        if (i === 0) {
-          // if (i === this.dimensions.length - 1) {
+        if (i === this.timeIndex) {
           // Time dimension - select only current timestamp
           return {
             start: this.currentTimestamp,
@@ -225,8 +227,8 @@ class OmFileViewer {
       console.log(data);
 
       // Reshape data for plotting
-      const rows = this.dimensions[1];
-      const cols = this.dimensions[2];
+      const rows = this.dimensions[this.latIndex];
+      const cols = this.dimensions[this.lonIndex];
       const plotData: number[][] = [];
 
       // Create 2D array for heatmap
