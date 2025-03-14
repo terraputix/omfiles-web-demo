@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 import path from "path";
-import { fileURLToPath } from "url";
 import fs from "fs/promises";
 
 const copyWasmPlugin = () => {
@@ -26,6 +25,7 @@ const copyWasmPlugin = () => {
 };
 
 export default defineConfig({
+  base: "omfiles-web-demo/",
   plugins: [wasm(), topLevelAwait(), copyWasmPlugin()],
   server: {
     port: 3000,
