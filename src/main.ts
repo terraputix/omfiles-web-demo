@@ -31,6 +31,7 @@ class OmFileViewer {
 
   // DOM elements
   private loadButton: HTMLButtonElement;
+  private loadDataButton: HTMLButtonElement;
   private dataUrlInput: HTMLInputElement;
   private fileInput: HTMLInputElement;
   private prevButton: HTMLButtonElement;
@@ -74,22 +75,31 @@ class OmFileViewer {
     this.nextButton.addEventListener("click", () => this.showNextTimestamp());
     this.fileInput.addEventListener("change", () => this.handleFileSelection());
 
-    // Add event listeners for dimension selection changes
+    this.loadDataButton = document.getElementById(
+      "loadDataButton",
+    ) as HTMLButtonElement;
+
+    // Add event listener for the new button
+    this.loadDataButton.addEventListener("click", () =>
+      this.loadAndDisplayData(),
+    );
+
+    // Add new event listeners that only update dimensions without loading data
     this.latSelect.addEventListener("change", () =>
-      this.handleDimensionChange(),
+      this.updateDimensionIndices(),
     );
     this.lonSelect.addEventListener("change", () =>
-      this.handleDimensionChange(),
+      this.updateDimensionIndices(),
     );
     this.timeSelect.addEventListener("change", () =>
-      this.handleDimensionChange(),
+      this.updateDimensionIndices(),
     );
   }
 
   /**
-   * Handle dimension selection change
+   * Update dimension indices without loading data
    */
-  private async handleDimensionChange(): Promise<void> {
+  private updateDimensionIndices(): void {
     if (!this.reader) return;
 
     this.latIndex = parseInt(this.latSelect.value);
@@ -104,9 +114,6 @@ class OmFileViewer {
     this.prevButton.disabled = this.currentTimestamp === 0;
     this.nextButton.disabled = this.currentTimestamp >= this.maxTimestamp;
     this.timestampLabel.textContent = `Timestamp: ${this.currentTimestamp}`;
-
-    // Update the display
-    await this.loadAndDisplayData();
   }
 
   /**
@@ -122,11 +129,13 @@ class OmFileViewer {
         // Create and initialize reader
         this.reader = await OmFileReader.create(backend);
 
+        // Load metadata
+        await this.loadMetadata();
+
         // Get dimensions and setup UI
         this.setupDimensionsAndUI();
 
-        // Load and display initial data
-        await this.loadAndDisplayData();
+        // Don't load data automatically - wait for button click
       } catch (error) {
         console.error("Error loading file:", error);
         alert(
@@ -287,9 +296,6 @@ class OmFileViewer {
       // Setup dimensions and UI
       this.setupDimensionsAndUI();
 
-      // Load and display initial data
-      await this.loadAndDisplayData();
-
       this.loadButton.textContent = "Load Data";
       this.loadButton.disabled = false;
     } catch (error) {
@@ -361,8 +367,6 @@ class OmFileViewer {
 
       // Read data for the specified dimensions
       const data = await this.reader.read(OmDataType.FloatArray, ranges);
-
-      console.log(data);
 
       // Reshape data for plotting
       const rows = this.dimensions[this.latIndex];
