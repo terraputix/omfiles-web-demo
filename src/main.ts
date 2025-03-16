@@ -5,7 +5,8 @@ import {
   OmFileReaderBackend,
   Range,
   OmDataType,
-} from "omfiles-js"; // Update import to use the package
+  CompressionType,
+} from "omfiles-js";
 
 // Define Plotly globally since it's included via CDN
 declare global {
@@ -26,6 +27,7 @@ class OmFileViewer {
   private timeIndex = 2;
   private latIndex = 0;
   private lonIndex = 1;
+  private metadata: Record<string, any> = {};
 
   // DOM elements
   private loadButton: HTMLButtonElement;
@@ -35,6 +37,10 @@ class OmFileViewer {
   private nextButton: HTMLButtonElement;
   private timestampLabel: HTMLElement;
   private plotArea: HTMLElement;
+  private metadataArea: HTMLElement;
+  private latSelect: HTMLSelectElement;
+  private lonSelect: HTMLSelectElement;
+  private timeSelect: HTMLSelectElement;
 
   constructor() {
     // Get DOM elements
@@ -53,6 +59,12 @@ class OmFileViewer {
       "timestampLabel",
     ) as HTMLElement;
     this.plotArea = document.getElementById("plotArea") as HTMLElement;
+    this.metadataArea = document.getElementById("metadataArea") as HTMLElement;
+    this.latSelect = document.getElementById("latSelect") as HTMLSelectElement;
+    this.lonSelect = document.getElementById("lonSelect") as HTMLSelectElement;
+    this.timeSelect = document.getElementById(
+      "timeSelect",
+    ) as HTMLSelectElement;
 
     // Initialize event listeners
     this.loadButton.addEventListener("click", () => this.loadData());
@@ -60,8 +72,41 @@ class OmFileViewer {
       this.showPreviousTimestamp(),
     );
     this.nextButton.addEventListener("click", () => this.showNextTimestamp());
-
     this.fileInput.addEventListener("change", () => this.handleFileSelection());
+
+    // Add event listeners for dimension selection changes
+    this.latSelect.addEventListener("change", () =>
+      this.handleDimensionChange(),
+    );
+    this.lonSelect.addEventListener("change", () =>
+      this.handleDimensionChange(),
+    );
+    this.timeSelect.addEventListener("change", () =>
+      this.handleDimensionChange(),
+    );
+  }
+
+  /**
+   * Handle dimension selection change
+   */
+  private async handleDimensionChange(): Promise<void> {
+    if (!this.reader) return;
+
+    this.latIndex = parseInt(this.latSelect.value);
+    this.lonIndex = parseInt(this.lonSelect.value);
+    this.timeIndex = parseInt(this.timeSelect.value);
+
+    // Reset timestamp to 0 when changing time dimension
+    this.currentTimestamp = 0;
+    this.maxTimestamp = this.dimensions[this.timeIndex] - 1;
+
+    // Update UI
+    this.prevButton.disabled = this.currentTimestamp === 0;
+    this.nextButton.disabled = this.currentTimestamp >= this.maxTimestamp;
+    this.timestampLabel.textContent = `Timestamp: ${this.currentTimestamp}`;
+
+    // Update the display
+    await this.loadAndDisplayData();
   }
 
   /**
@@ -94,6 +139,48 @@ class OmFileViewer {
   }
 
   /**
+   * Display metadata in the UI
+   */
+  private displayMetadata(): void {
+    // Clear previous content
+    this.metadataArea.innerHTML = "";
+
+    // Create metadata section
+    const metadataSection = document.createElement("div");
+    metadataSection.className = "metadata-section";
+
+    // Add heading
+    const heading = document.createElement("h3");
+    heading.textContent = "File Metadata";
+    metadataSection.appendChild(heading);
+
+    // Create table for metadata
+    const table = document.createElement("table");
+    table.className = "metadata-table";
+
+    // Add metadata keys and values
+    for (const [key, value] of Object.entries(this.metadata)) {
+      const row = document.createElement("tr");
+
+      const keyCell = document.createElement("td");
+      keyCell.className = "metadata-key";
+      keyCell.textContent = key;
+      row.appendChild(keyCell);
+
+      const valueCell = document.createElement("td");
+      valueCell.className = "metadata-value";
+      valueCell.textContent =
+        typeof value === "object" ? JSON.stringify(value) : String(value);
+      row.appendChild(valueCell);
+
+      table.appendChild(row);
+    }
+
+    metadataSection.appendChild(table);
+    this.metadataArea.appendChild(metadataSection);
+  }
+
+  /**
    * Setup dimensions and UI after reader is initialized
    */
   private setupDimensionsAndUI(): void {
@@ -101,20 +188,49 @@ class OmFileViewer {
 
     // Get dimensions
     this.dimensions = this.reader.getDimensions();
-    console.log("Dimensions:", this.dimensions);
 
     if (this.dimensions.length < 2) {
       throw new Error("Data must have at least 2 dimensions");
     }
 
-    // Assume last dimension is time
-    this.maxTimestamp = this.dimensions[this.dimensions.length - 1] - 1;
+    // Populate dimension selection dropdowns
+    this.populateDimensionDropdowns();
+
+    // Default indices are already set
+    // Set dropdown values
+    this.latSelect.value = String(this.latIndex);
+    this.lonSelect.value = String(this.lonIndex);
+    this.timeSelect.value = String(this.timeIndex);
+
+    // Set max timestamp
+    this.maxTimestamp = this.dimensions[this.timeIndex] - 1;
     this.currentTimestamp = 0;
 
     // Update UI
     this.prevButton.disabled = this.currentTimestamp === 0;
     this.nextButton.disabled = this.currentTimestamp >= this.maxTimestamp;
     this.timestampLabel.textContent = `Timestamp: ${this.currentTimestamp}`;
+  }
+
+  /**
+   * Populate dimension selection dropdowns
+   */
+  private populateDimensionDropdowns(): void {
+    // Clear existing options
+    this.latSelect.innerHTML = "";
+    this.lonSelect.innerHTML = "";
+    this.timeSelect.innerHTML = "";
+
+    // Add options for each dimension
+    for (let i = 0; i < this.dimensions.length; i++) {
+      const option = document.createElement("option");
+      option.value = String(i);
+      option.text = `(${this.dimensions[i]})`;
+
+      this.latSelect.add(option.cloneNode(true) as HTMLOptionElement);
+      this.lonSelect.add(option.cloneNode(true) as HTMLOptionElement);
+      this.timeSelect.add(option.cloneNode(true) as HTMLOptionElement);
+    }
   }
 
   /**
@@ -165,22 +281,11 @@ class OmFileViewer {
       // Create and initialize the OM file reader
       this.reader = await OmFileReader.create(backend);
 
-      // Get dimensions
-      this.dimensions = this.reader.getDimensions();
-      console.log("Dimensions:", this.dimensions);
+      // Get metadata
+      await this.loadMetadata();
 
-      if (this.dimensions.length < 2) {
-        throw new Error("Data must have at least 2 dimensions");
-      }
-
-      // Assume last dimension is time
-      this.maxTimestamp = this.dimensions[this.dimensions.length - 1] - 1;
-      this.currentTimestamp = 0;
-
-      // Update UI
-      this.prevButton.disabled = this.currentTimestamp === 0;
-      this.nextButton.disabled = this.currentTimestamp >= this.maxTimestamp;
-      this.timestampLabel.textContent = `Timestamp: ${this.currentTimestamp}`;
+      // Setup dimensions and UI
+      this.setupDimensionsAndUI();
 
       // Load and display initial data
       await this.loadAndDisplayData();
@@ -194,6 +299,39 @@ class OmFileViewer {
       );
       this.loadButton.textContent = "Load Data";
       this.loadButton.disabled = false;
+    }
+  }
+
+  /**
+   * Load metadata from the file and display it
+   */
+  private async loadMetadata(): Promise<void> {
+    if (!this.reader) return;
+
+    try {
+      // Get metadata
+      let children = this.reader.numberOfChildren();
+      let variableName = this.reader.getName();
+      let dimensions = this.reader.getDimensions();
+      let compression = this.reader.compression();
+      let dataType = this.reader.dataType();
+      let chunkDimensions = this.reader.getChunkDimensions();
+
+      this.metadata = {
+        children: children,
+        variableName: variableName,
+        dimensions: dimensions,
+        compression: getEnumKeyByValue(CompressionType, compression),
+        dataType: getEnumKeyByValue(OmDataType, dataType),
+        chunkDimensions: chunkDimensions,
+      };
+
+      console.log("Metadata:", this.metadata);
+
+      // Display metadata
+      this.displayMetadata();
+    } catch (error) {
+      console.warn("Couldn't load metadata:", error);
     }
   }
 
@@ -305,6 +443,15 @@ class OmFileViewer {
       await this.loadAndDisplayData();
     }
   }
+}
+
+function getEnumKeyByValue<T extends Record<string, any>>(
+  enumObj: T,
+  value: T[keyof T],
+): keyof T | undefined {
+  return Object.keys(enumObj).find(
+    (key) => enumObj[key as keyof T] === value,
+  ) as keyof T | undefined;
 }
 
 /**
