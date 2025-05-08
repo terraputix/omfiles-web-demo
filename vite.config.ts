@@ -1,10 +1,11 @@
 import { defineConfig } from "vite";
-import { resolve } from "path";
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
+import path from "path";
+import fs from "fs/promises";
 
 export default defineConfig({
-  base: "/omfiles-web-demo/",
+  base: "omfiles-web-demo/",
   plugins: [wasm(), topLevelAwait()],
   server: {
     port: 3000,
@@ -16,10 +17,5 @@ export default defineConfig({
   build: {
     // Prevent Vite from mangling paths to WASM files
     assetsInlineLimit: 0,
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, "index.html"),
-      },
-    },
   },
 });
