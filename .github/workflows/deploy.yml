@@ -35,8 +35,8 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: List dist folder contents
-        run: ls -la dist
+      - name: List dist/assets folder contents
+        run: ls -la dist/assets
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
