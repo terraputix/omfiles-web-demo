@@ -4,7 +4,7 @@ import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 
 export default defineConfig({
-  base: "omfiles-web-demo/",
+  base: "/omfiles-web-demo/",
   plugins: [wasm(), topLevelAwait()],
   server: {
     port: 3000,
