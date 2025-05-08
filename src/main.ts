@@ -2,8 +2,8 @@ import {
   OmFileReader,
   FileBackend,
   MemoryHttpBackend,
-  OmFileReaderBackend,
-  Range,
+  type OmFileReaderBackend,
+  type Range,
   OmDataType,
   CompressionType,
 } from "@openmeteo/file-reader";

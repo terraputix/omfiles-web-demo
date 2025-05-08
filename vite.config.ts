@@ -1,15 +1,10 @@
 import { defineConfig } from "vite";
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
-import path from "path";
-import fs from "fs/promises";
 
 export default defineConfig({
-  base: "omfiles-web-demo/",
+  base: "/omfiles-web-demo/",
   plugins: [wasm(), topLevelAwait()],
-  server: {
-    port: 3000,
-  },
   // Ensure the WASM file is accessible during development
   optimizeDeps: {
     exclude: ["@openmeteo/file-reader"],
