@@ -4,35 +4,15 @@ import topLevelAwait from "vite-plugin-top-level-await";
 import path from "path";
 import fs from "fs/promises";
 
-const copyWasmPlugin = () => {
-  return {
-    name: "copy-wasm-files",
-    async writeBundle() {
-      const wasmSource = path.resolve(
-        "node_modules/omfiles-js/dist/wasm/om_reader_wasm.wasm",
-      );
-      const outDir = path.resolve("dist");
-
-      await fs.mkdir(path.join(outDir, "wasm"), { recursive: true });
-      await fs.copyFile(
-        wasmSource,
-        path.join(outDir, "wasm", "om_reader_wasm.wasm"),
-      );
-
-      console.log("✓ WASM file copied to output directory");
-    },
-  };
-};
-
 export default defineConfig({
   base: "omfiles-web-demo/",
-  plugins: [wasm(), topLevelAwait(), copyWasmPlugin()],
+  plugins: [wasm(), topLevelAwait()],
   server: {
     port: 3000,
   },
   // Ensure the WASM file is accessible during development
   optimizeDeps: {
-    exclude: ["omfiles-js"],
+    exclude: ["@openmeteo/file-reader"],
   },
   build: {
     // Prevent Vite from mangling paths to WASM files

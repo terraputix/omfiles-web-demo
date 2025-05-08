@@ -1,6 +1,6 @@
 # Browser Based Open-Meteo File Format Viewer
 
-This is a small POC web-app, demonstrating how to use the Open-Meteo File Format in the browser using JavaScript and WebAssembly via [omfiles-js](https://github.com/terraputix/omfiles-js).
+This is a small POC web-app, demonstrating how to use the Open-Meteo File Format in the browser using JavaScript and WebAssembly via [open-meteo/typescript-omfiles](https://github.com/open-meteo/typescript-omfiles).
 
 It is deployed on [GitHub Pages](https://terraputix.github.io/omfiles-web-demo/).
 

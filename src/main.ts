@@ -6,7 +6,7 @@ import {
   Range,
   OmDataType,
   CompressionType,
-} from "omfiles-js";
+} from "@openmeteo/file-reader";
 
 // Define Plotly globally since it's included via CDN
 declare global {

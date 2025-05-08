@@ -3,21 +3,17 @@
   "version": "0.0.1",
   "main": "src/main.ts",
   "scripts": {
-    "clone-omfiles": "rm -rf ./temp-omfiles-js && git clone --recursive -b web-demo https://github.com/terraputix/omfiles-js.git ./temp-omfiles-js",
-    "build-omfiles": "cd ./temp-omfiles-js && npm install && npm run build && cd ..",
-    "setup-omfiles": "npm run clone-omfiles && npm run build-omfiles && rm -rf ./node_modules/omfiles-js && cp -r ./temp-omfiles-js ./node_modules/omfiles-js",
-    "prebuild": "npm run setup-omfiles",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "keywords": [],
   "author": "terraputix",
   "license": "MIT",
-  "description": "WASM demo for omfiles-js",
+  "description": "WASM demo for @openmeteo/file-reader",
   "dependencies": {
     "@types/node": "^22.13.10",
     "@types/plotly.js": "^2.35.2",
-    "omfiles-js": "github:terraputix/omfiles-js",
+    "@openmeteo/file-reader": "^0.0.1",
     "typescript": "^5.8.2",
     "vite": "^6.2.1",
     "vite-plugin-top-level-await": "^1.5.0",
