@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main # Set this to your default branch
+      - main
   workflow_dispatch: # Allows manual triggering of the workflow
 
 permissions:
@@ -32,13 +32,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup Git for omfiles-js clone
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-
       - name: Build project
         run: npm run build
+
+      - name: List dist folder contents
+        run: ls -la dist
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
@@ -46,7 +44,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "dist" # Adjust if your build output is in a different directory
+          path: "dist"
 
       - name: Deploy to GitHub Pages
         id: deployment
