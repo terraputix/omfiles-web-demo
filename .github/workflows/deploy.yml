@@ -35,6 +35,9 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Show index.html file after build
+        run: cat dist/index.html
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
