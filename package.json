@@ -12,7 +12,7 @@
   "license": "MIT",
   "description": "WASM demo for @openmeteo/file-reader",
   "devDependencies": {
-    "@openmeteo/file-reader": "^0.0.1",
+    "@openmeteo/file-reader": "^0.0.3",
     "@types/node": "^22.13.10",
     "@types/plotly.js": "^2.35.2",
     "typescript": "^5.8.2",
